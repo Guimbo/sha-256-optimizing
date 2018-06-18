@@ -1,5 +1,5 @@
 /*******************************************************************************
- * MARK - CabeÃ§alho ************************************************************
+ * MARK - Cabeçalho ************************************************************
  *******************************************************************************
     Generated Main Source File
 
@@ -10,7 +10,7 @@
         main.c
 
     Summary:
-        Este Ã© o arquivo principal gerado usando o PIC18 MCU.
+        Este é o arquivo principal gerado usando o PIC18 MCU.
     
     Plataforma Alvo: PIC18F4550
 
@@ -18,43 +18,43 @@
         25 de maio de 2018
 
     Contexto de desenvolvimento:
-        O cÃ³digo foi desenvolvido na disciplina de sistemas embarcados
-        no curso de engenharia de computaÃ§Ã£o - IFCE. Este arquivo tem como Fim
+        O código foi desenvolvido na disciplina de sistemas embarcados
+        no curso de engenharia de computação - IFCE. Este arquivo tem como Fim
         ser executado no microcontroller PIC18F4550
 
-    RestriÃ§Ã£o:  
-        O cÃ³digo foi desenvolvido para PIC18F4550 e nÃ£o Ã© garantido
-        que ESTA VERSÃƒO da implementaÃ§Ã£o funcione em outros dispositivos.
+    Restrição:  
+        O código foi desenvolvido para PIC18F4550 e não é garantido
+        que ESTA VERSÃO da implementação funcione em outros dispositivos.
     
     Copyright: 
         No copyright.
 
     Modo de uso:    
-        Para o uso desde arquivo Ã© necessÃ¡rio ter ou um simulador de PIC18F4550
-        Ou entÃ£o o prÃ³prio pic18f4550. Em seguida basta executar o cÃ³digo em MPLABX o compilador XC8.
-        Assim basta gerar o arquivo .hex(na pasta onde este cÃ³digo se encontra jÃ¡ pode ter o arquivo)
-        e gravar o cÃ³digo no pic18f4550. AtravÃ©s de alguma interface serial Ã© possÃ­vel ver a execuÃ§Ã£o.
+        Para o uso desde arquivo é necessário ter ou um simulador de PIC18F4550
+        Ou então o próprio pic18f4550. Em seguida basta executar o código em MPLABX o compilador XC8.
+        Assim basta gerar o arquivo .hex(na pasta onde este código se encontra já pode ter o arquivo)
+        e gravar o código no pic18f4550. Através de alguma interface serial é possível ver a execução.
         No caso de um simulador, o arquivo .coff pode ser usado para debug.
     
     Entradas:
-        Sem entradas para a versÃ£o para pic do algoritmo.
-    SaÃ­da:
-        O hash Ã© mostrado pela porta serial.
+        Sem entradas para a versão para pic do algoritmo.
+    Saída:
+        O hash é mostrado pela porta serial.
 
     autores/estudantes: 
         Daniel Silva Alves Barbosa & Guilherme Araujo da Silva
 
 
     Description:
-        ImplementaÃ§Ã£o do algoritmo hash SHA-256.
-Â Â Â Â Â Â Â Â SHA-256 Ã© um dos trÃªs algoritmos do SHA2
-        especificaÃ§Ã£o. Os outros, SHA-384 e SHA-512, nÃ£o sÃ£o
-        oferecido nesta implementaÃ§Ã£o.
-        EspecificaÃ§Ã£o de algoritmo pode ser encontrada aqui:
+        Implementação do algoritmo hash SHA-256.
+        SHA-256 é um dos três algoritmos do SHA2
+        especificação. Os outros, SHA-384 e SHA-512, não são
+        oferecido nesta implementação.
+        Especificação de algoritmo pode ser encontrada aqui:
             * http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf *
 
 
-    ReferÃªncias:
+    Referências:
     Sha-256: 
         Brad Conte (brad AT bradconte.com) / github: https://github.com/B-Con/crypto-algorithms
     USART:
@@ -66,8 +66,6 @@
  ******************************************************************************/
 
 #include <p18f4550.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -94,6 +92,8 @@
 #pragma config STVREN   = ON    /// STACK FULL/UNDERFLOW CAUSE RESET
 #pragma config LVP      = OFF   /// DISABLE LOW VOLTAGE PROGRAM (ICSP DISABLE)
 
+#pragma	printf_check(sprintf) const
+extern int sprintf(char *, const char *, ...);
 
 
 
@@ -109,12 +109,7 @@ static const char string[] = {
 
 
 
-/*******************************************************************************
- * MARK - USART ****************************************************************
- ******************************************************************************/
-void USART_Init(long);
-void USART_TxChar(char);
-void USART_SendString(const char *);
+
 
 //Funcao para iniciar a configuracao para a comunicacao
 //Entrada: um long -> a frequencia de baud rate
@@ -154,6 +149,10 @@ void USART_SendString(const char *out)
 
 
 
+
+
+
+
 /*******************************************************************************
  * MARK - SHA256 ***************************************************************
  ******************************************************************************/
@@ -176,8 +175,8 @@ struct buffer_state {
 	const uint8_t * pointer;
 	size_t length;
 	size_t total_len;
-	int single_one_delivered; //bool
-	int total_len_delivered;  //bool
+	int8_t single_one_delivered; //bool
+	int8_t total_len_delivered;  //bool
 };
 
 //Inicia a estrutura de dados
@@ -233,17 +232,19 @@ static int calc_chunk(uint8_t chunk[CHUNK_SIZE], struct buffer_state * state) {
 	if (space_in_chunk >= TOTAL_LEN) {
 		const size_t left = space_in_chunk - TOTAL_LEN;
 		size_t length = state->total_len;
-		int i;
+		int8_t i;
 		memset(chunk, 0x00, left);
 		chunk += left;
 
 		//Armazenar length*8 como big endian 64-bit sem overflow
 		chunk[7] = (uint8_t) (length << 3);
 		length >>= 5;
-		for (i = 6; i >= 0; i--) {
-			chunk[i] = (uint8_t) length;
+        i=6;
+        while(i>=0){
+            chunk[i] = (uint8_t) length;
 			length >>= 8;
-		}
+            i--;
+        }
 		state->total_len_delivered = 1;
 	} else {
 		//Preenche o espaco remanecente com '0's
@@ -262,8 +263,8 @@ void calc_sha_256(uint8_t hash[32], const char * input, size_t length) {
 	//Inicializar os Valores Hash
 	//(Primeiros 32bits da parte fracional da raiz quadrada dos primeiros 8 primos: 2..19)
 	uint32_t h[] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
-	int i;
-	int j;
+	char i;
+	char j;
 
 	//o bloco de 512-bit em que havera as operacoes
 	uint8_t chunk[64];
@@ -283,31 +284,30 @@ void calc_sha_256(uint8_t hash[32], const char * input, size_t length) {
 		memset(word, 0x00, sizeof word);
         i=0;
         while(i < 16){
-			word[i] = (uint32_t) pointer[0] << 24 | (uint32_t) pointer[1] << 16 |
+            word[i] = (uint32_t) pointer[0] << 24 | (uint32_t) pointer[1] << 16 |
 				(uint32_t) pointer[2] << 8 | (uint32_t) pointer[3];
 			pointer += 4;
             i++;
-		}
-
+        }
 		//Extender as primeiras 16 palavras nos 48 espacos remanecentes da mensagem
-		i = 16; 
-        while(i < 64){
+        i=16;
+        while(i<64){
 			const uint32_t s0 = rotate_right(word[i - 15], 7) ^ rotate_right(word[i - 15], 18) ^ (word[i - 15] >> 3);
 			const uint32_t s1 = rotate_right(word[i - 2], 17) ^ rotate_right(word[i - 2], 19) ^ (word[i - 2] >> 10);
 			word[i] = word[i - 16] + s0 + word[i - 7] + s1;
-             i++;
-		}
-		
-		//Inicializar variaveis com o valor atual do hash
-        i = 0;
-		while(i < 8){
-			aux_hash[i] = h[i];
+            
             i++;
         }
-
+		
+		//Inicializar variaveis com o valor atual do hash
+        i=0;
+        while(i<8){
+            aux_hash[i] = h[i];
+            i++;
+        }
 		//Loop da compressao principal
-		i = 0; 
-        while(i < 64) {
+        i=0;
+        while(i<64){
 			const uint32_t s1 = rotate_right(aux_hash[4], 6) ^ rotate_right(aux_hash[4], 11) ^ rotate_right(aux_hash[4], 25);
 			const uint32_t ch = (aux_hash[4] & aux_hash[5]) ^ (~aux_hash[4] & aux_hash[6]);
 			const uint32_t temp1 = aux_hash[7] + s1 + ch + primes[i] + word[i];
@@ -327,16 +327,22 @@ void calc_sha_256(uint8_t hash[32], const char * input, size_t length) {
 		}
 
 		//Adicionar o bloco comprimido ao valor hash
-		i = 0;
-        while(i < 8){
-			h[i] += aux_hash[i];
-            i++;
-        }
+        i=0;
+        while(i<0){
+         h[i] += aux_hash[i];
+         i++;
 	}
+    i = 0;
+    while(i<8){
+    h[i] += aux_hash[i];
+    i++;
+        }
+	
+    }
 
 		//Produz o hash final em big endian
-	i = 0, j = 0;
-    while(i < 8){
+	i = 0, j = 0; 
+    while(i < 8) {
 		hash[j++] = (uint8_t) (h[i] >> 24);
 		hash[j++] = (uint8_t) (h[i] >> 16);
 		hash[j++] = (uint8_t) (h[i] >> 8);
@@ -348,11 +354,13 @@ void calc_sha_256(uint8_t hash[32], const char * input, size_t length) {
 //Transformar a hash em uma string
 static void hash_to_string(char string[65], const uint8_t hash[32]) {
 	
-	size_t i = 0;
-	while (i < 32) {
+	size_t i;
+    i=0;
+    while(i<32){
 		string += sprintf(string, "%02x", hash[i]);
         i++;
-	}
+        
+    }
 } 
 
 
@@ -391,3 +399,4 @@ void main() {
         USART_SendString("          ");
     }
 }
+
